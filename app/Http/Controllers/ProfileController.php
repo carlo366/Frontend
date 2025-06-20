@@ -90,7 +90,8 @@ public function updateUser(Request $request)
 
     if ($response->successful()) {
         $message = $response->json('message') ?? 'Profil berhasil diperbarui.';
-        return back()->with('success', $message);
+        // Redirect ke halaman profil agar data user diambil ulang dari API
+        return redirect()->route('profile.index')->with('success', $message)->with('from_edit_profile', true);
     }
 
     // Tangani error dari validasi backend
@@ -102,7 +103,11 @@ public function updateUser(Request $request)
         $errorMessage = $errors;
     }
 
-    return back()->withErrors(['message' => $errorMessage]);
+    // Redirect ke halaman profil dengan error agar modal tetap terbuka
+    return redirect()->route('profile.user_profile')
+        ->withErrors(['name' => $errorMessage])
+        ->with('from_edit_profile', true)
+        ->withInput();
 }
 
 }

@@ -31,7 +31,6 @@ class AppServiceProvider extends ServiceProvider
 
             // Gunakan hash agar key cache pendek
             $userCacheKey = 'user_info_' . md5($token);
-
             $user = [];
             if ($token) {
                 $user = cache()->remember($userCacheKey, 60, function () use ($authService, $token) {
