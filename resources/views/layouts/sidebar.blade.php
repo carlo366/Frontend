@@ -75,6 +75,12 @@
                 </ul>
             </li>
             @endcan
+            <li class="nav-item">
+                <a href="{{route('dashboard.rekapitulasi')}}" class="nav-link">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>Dashboard Rekaptulasi</span>
+                </a>
+            </li>
             @can('view_transaction')
             <li class="nav-item">
                 <a href="{{route('transactions.index')}}" class="nav-link">

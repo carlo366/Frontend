@@ -61,7 +61,6 @@ class AppServiceProvider extends ServiceProvider
             ];
 
             $flags = generatePermissionsFlags($permissions, $keys);
-
             $view->with(array_merge([
                 'user' => $user,
                 'web' => $web,

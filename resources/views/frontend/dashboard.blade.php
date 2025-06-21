@@ -39,33 +39,20 @@
         @endcan
 
         <!-- Statistik Transaksi -->
-        <div class="col-lg-3 mb-0">
-            <a href="{{ route('transactions.index') }}">
-            <div class="card bg-pink text-white shadow">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="me-3">
-                            <i class="bi bi-arrow-left-right fs-1"></i>
-                        </div>
-                        <div>
-                            <h3 class="mb-4">{{ $transaksis }}</h3>
-                            <div>Transaksi</div>
-
-                            <div class="dropdown d-inline-flex ms-auto">
-                                <a href="#" class="text-white d-inline-flex align-items-center dropdown-toggle"
-                                    data-bs-toggle="dropdown">
-                                    <i class="ph-gear"></i>
-                                </a>
-                                <div class="dropdown-menu dropdown-menu-end">
-                                    <a href="#" class="dropdown-item">
-                                        <i class="ph-chart-line me-2"></i> Statistics
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </a>
+<div class="col-lg-3 mb-0">
+    <div class="card bg-pink text-white shadow position-relative">
+        <a href="{{ route('transactions.index') }}" class="stretched-link"></a>
+        <div class="card-body d-flex align-items-center">
+            <div class="me-3">
+                <i class="bi bi-arrow-left-right fs-1"></i>
+            </div>
+            <div>
+                <h3 class="mb-4">{{ $transaksis }}</h3>
+                <div>Transaksi</div>
+            </div>
         </div>
+    </div>
+</div>
 
         @can('view_satuan')
             <div class="col-lg-3 mb-0">
@@ -182,203 +169,266 @@
         @endcan
     </div>
 
-    <!-- Grafik Transaksi -->
-    <div class="row mt-4">
-        <div class="col-lg-12">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Grafik Transaksi</h5>
-                    <div class="d-flex gap-2">
-                        <input type="date" id="startDate" class="form-control" />
-                        <input type="date" id="endDate" class="form-control" />
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div style="position: relative; height: 450px; width: 100%;">
-                        <canvas id="transaksiChart"></canvas>
-                    </div>
-                </div>
+  {{-- ======================= GRAFIK TRANSAKSI ======================= --}}
+<div class="card shadow-sm mt-4" id="grafik-section">
+    <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <h5 class="mb-0">
+            <i class="bi bi-graph-up-arrow me-2"></i> Grafik Transaksi
+        </h5>
+        <div class="d-flex gap-2 align-items-center flex-wrap">
+            <select id="filterOption" class="form-select form-select-sm w-auto">
+                <option value="today">Today</option>
+                <option value="thisWeek" selected>Minggu ini</option>
+                <option value="thisMonth">Bulan Ini</option>
+                <option value="custom">rentang khusus</option>
+            </select>
+            <input type="date" id="startDate" class="form-control form-control-sm d-none" />
+            <input type="date" id="endDate" class="form-control form-control-sm d-none" />
+            <button class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1" onclick="printChart()">
+                <i class="bi bi-file-earmark-pdf"></i> Cetak PDF
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <div style="position: relative; height: 450px; width: 100%;">
+            <canvas id="transaksiChart"></canvas>
+            <div id="noDataMessage" class="text-center text-muted mt-3" style="display: none;">
+                <i class="bi bi-exclamation-circle me-1"></i> Tidak ada data untuk ditampilkan.
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Kalender Transaksi -->
-    <div class="card shadow-sm mt-3">
-        <div class="card-header">
-            <h5 class="mb-0">Kalender Transaksi</h5>
-        </div>
-        <div class="card-body">
-            <div id="calendar"></div>
-        </div>
+
+{{-- ======================= KALENDER TRANSAKSI ======================= --}}
+<div class="card shadow-sm mt-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-calendar-event me-2"></i>Kalender Transaksi</h5>
+        <div class="small text-muted">Klik event untuk detail</div>
     </div>
+    <div class="card-body">
+        <div id="calendar"></div>
+    </div>
+</div>
 @endsection
 
 @push('js')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        window.API_BASE_URL = "{{ config('api.base_url') }}";
-    </script>
-    <script>
-        const summaryByType = @json($summaryByType);
-        const colors = ['#4BC0C0', '#FF6384', '#FFCE56', '#36A2EB', '#9966FF', '#FF9F40', '#00A36C'];
-        const typeList = Object.keys(summaryByType);
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
 
-        function filterDataByRange(start, end) {
-            const labelsSet = new Set();
+<!-- HTML2PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-            typeList.forEach(type => {
-                Object.keys(summaryByType[type]).forEach(date => {
-                    if ((!start || date >= start) && (!end || date <= end)) {
-                        labelsSet.add(date);
-                    }
-                });
+<!-- FullCalendar & Tippy -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+<script src="https://unpkg.com/tippy.js@6"></script>
+
+<script>
+    const summaryByType = @json($summaryByType);
+    const colors = ['#4BC0C0', '#FF6384', '#FFCE56', '#36A2EB', '#9966FF', '#FF9F40', '#00A36C'];
+    const typeList = Object.keys(summaryByType);
+
+    function filterDataByRange(start, end) {
+        const labelsSet = new Set();
+        typeList.forEach(type => {
+            Object.keys(summaryByType[type]).forEach(date => {
+                if ((!start || date >= start) && (!end || date <= end)) {
+                    labelsSet.add(date);
+                }
             });
+        });
 
-            const labels = Array.from(labelsSet).sort();
+        const labels = Array.from(labelsSet).sort();
 
-            const datasets = typeList.map((type, index) => {
-                const data = labels.map(label => summaryByType[type][label] || 0);
-                return {
-                    label: type,
-                    data,
-                    backgroundColor: colors[index % colors.length],
-                    borderColor: colors[index % colors.length],
-                    fill: false,
-                    tension: 0.3,
-                    pointRadius: 5,
-                    pointHoverRadius: 8,
-                    pointBackgroundColor: colors[index % colors.length],
-                    borderWidth: 2,
-                    spanGaps: true,
-                };
-            });
-
+        const datasets = typeList.map((type, index) => {
+            const data = labels.map(label => summaryByType[type][label] || 0);
             return {
-                labels,
-                datasets
+                label: type,
+                data,
+                backgroundColor: colors[index % colors.length],
+                borderColor: colors[index % colors.length],
+                fill: false,
+                tension: 0.3,
+                pointRadius: 5,
+                pointHoverRadius: 8,
+                pointBackgroundColor: colors[index % colors.length],
+                borderWidth: 2,
+                spanGaps: true,
             };
-        }
+        });
 
-        const ctx = document.getElementById('transaksiChart').getContext('2d');
-        let transaksiChart = new Chart(ctx, {
-            type: 'line',
-            data: filterDataByRange('', ''),
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                        labels: {
-                            boxWidth: 20,
-                            padding: 15,
-                        }
-                    },
-                    tooltip: {
-                        mode: 'nearest',
-                        intersect: false,
-                        callbacks: {
-                            label: function(ctx) {
-                                return ctx.dataset.label + ': ' + ctx.parsed.y;
-                            }
-                        }
+        return { labels, datasets };
+    }
+
+    const ctx = document.getElementById('transaksiChart').getContext('2d');
+    let transaksiChart = new Chart(ctx, {
+        type: 'line',
+        data: filterDataByRange('', ''),
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        boxWidth: 20,
+                        padding: 15,
                     }
                 },
-                interaction: {
+                tooltip: {
                     mode: 'nearest',
-                    axis: 'x',
                     intersect: false,
-                },
-                scales: {
-                    x: {
-                        ticks: {
-                            maxRotation: 45,
-                            minRotation: 45,
-                            autoSkip: true,
-                            maxTicksLimit: 15,
-                        },
-                        title: {
-                            display: true,
-                            text: 'Tanggal'
-                        },
-                        grid: {
-                            display: false
+                    callbacks: {
+                        label: function(ctx) {
+                            return ctx.dataset.label + ': ' + ctx.parsed.y;
                         }
+                    }
+                }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false,
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 45,
+                        autoSkip: true,
+                        maxTicksLimit: 15,
                     },
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Jumlah Transaksi'
-                        }
+                    title: {
+                        display: true,
+                        text: 'Tanggal'
+                    },
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Jumlah Transaksi'
                     }
                 }
             }
-        });
-
-        document.getElementById('startDate').addEventListener('change', updateChart);
-        document.getElementById('endDate').addEventListener('change', updateChart);
-
-        function updateChart() {
-            const start = document.getElementById('startDate').value;
-            const end = document.getElementById('endDate').value;
-            const {
-                labels,
-                datasets
-            } = filterDataByRange(start, end);
-            transaksiChart.data.labels = labels;
-            transaksiChart.data.datasets = datasets;
-            transaksiChart.update();
         }
-    </script>
+    });
 
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const calendarEl = document.getElementById('calendar');
+    function updateChart() {
+        const filter = document.getElementById('filterOption').value;
+        let start = '', end = '';
 
-            const calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                height: 'auto',
-                events: @json($events),
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,listWeek'
-                },
-                eventDidMount: function(info) {
-                    const {
-                        kode,
-                        barang,
-                        jumlah,
-                        gudang,
-                        type
-                    } = info.event.extendedProps;
+        if (filter === 'today') {
+            start = end = moment().format('YYYY-MM-DD');
+        } else if (filter === 'thisWeek') {
+            start = moment().startOf('isoWeek').format('YYYY-MM-DD');
+            end = moment().endOf('isoWeek').format('YYYY-MM-DD');
+        } else if (filter === 'thisMonth') {
+            start = moment().startOf('month').format('YYYY-MM-DD');
+            end = moment().endOf('month').format('YYYY-MM-DD');
+        } else if (filter === 'custom') {
+            start = document.getElementById('startDate').value;
+            end = document.getElementById('endDate').value;
+            if (!start || !end) return;
+        }
 
-                    const tooltipContent =
-                        `<strong>Kode:</strong> ${kode}<br>` +
-                        `<strong>Barang:</strong> ${barang}<br>` +
-                        `<strong>Jumlah:</strong> ${jumlah}<br>` +
-                        `<strong>Gudang:</strong> ${gudang}<br>` +
-                        `<strong>Tipe:</strong> ${type}`;
+        const { labels, datasets } = filterDataByRange(start, end);
+        transaksiChart.data.labels = labels;
+        transaksiChart.data.datasets = datasets;
+        transaksiChart.update();
 
-                    if (window.tippy) {
-                        tippy(info.el, {
-                            content: tooltipContent,
-                            allowHTML: true,
-                            theme: 'light',
-                            placement: 'top',
-                            arrow: true,
-                        });
-                    } else {
-                        info.el.setAttribute('title', tooltipContent.replace(/<br>/g, '\n'));
-                    }
-                }
-            });
+        const noData = (labels.length === 0 || datasets.every(d => d.data.every(y => y === 0)));
+        document.getElementById('noDataMessage').style.display = noData ? 'block' : 'none';
+    }
 
-            calendar.render();
+    function printChart() {
+        const element = document.getElementById('grafik-section');
+        html2pdf().from(element).set({
+            margin: 0.5,
+            filename: 'grafik-transaksi.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
+        }).save();
+    }
+
+    // Event listener filter
+    document.getElementById('filterOption').addEventListener('change', function() {
+        const val = this.value;
+        const startInput = document.getElementById('startDate');
+        const endInput = document.getElementById('endDate');
+
+        if (val === 'custom') {
+            startInput.classList.remove('d-none');
+            endInput.classList.remove('d-none');
+        } else {
+            startInput.classList.add('d-none');
+            endInput.classList.add('d-none');
+        }
+
+        updateChart();
+    });
+
+    document.getElementById('startDate').addEventListener('change', updateChart);
+    document.getElementById('endDate').addEventListener('change', updateChart);
+
+    // Default: thisWeek
+    window.addEventListener('load', () => {
+        document.getElementById('filterOption').value = 'thisWeek';
+        updateChart();
+    });
+</script>
+
+{{-- FullCalendar & Tippy.js --}}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+<script src="https://unpkg.com/@popperjs/core@2"></script>
+<script src="https://unpkg.com/tippy.js@6"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const calendarEl = document.getElementById('calendar');
+
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth', // Ganti ke 'timeGridWeek' jika ingin tampilan per jam
+            height: "auto",
+            events: @json($events),
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,listWeek'
+            },
+            eventDidMount: function (info) {
+                const {
+                    kode,
+                    barang,
+                    jumlah,
+                    gudang,
+                    type
+                } = info.event.extendedProps;
+
+                const tooltipContent = `
+                    <strong>Kode:</strong> ${kode}<br>
+                    <strong>Barang:</strong> ${barang}<br>
+                    <strong>Jumlah:</strong> ${jumlah}<br>
+                    <strong>Gudang:</strong> ${gudang}<br>
+                    <strong>Tipe:</strong> ${type}
+                `;
+
+                tippy(info.el, {
+                    content: tooltipContent,
+                    allowHTML: true,
+                    theme: 'light-border',
+                    placement: 'top',
+                    arrow: true,
+                });
+            },
         });
-    </script>
 
-    <script src="https://unpkg.com/tippy.js@6"></script>
+        calendar.render();
+    });
+</script>
 @endpush

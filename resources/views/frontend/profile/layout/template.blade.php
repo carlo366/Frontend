@@ -1,5 +1,7 @@
+{{-- filepath: resources/views/frontend/profile/layout/template.blade.php --}}
 <!DOCTYPE html>
 <html lang="en">
+
 
 <head>
     <meta charset="UTF-8" />
@@ -100,13 +102,7 @@
     @include('components.demo_config')
 
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg px-4">
-        <div class="d-flex align-items-center">
-            <a href="{{ route('dashboard') }}" class="btn btn-link text-dark">
-                <i class="bi bi-arrow-left-circle me-2"></i> Kembali ke Dashboard
-            </a>
-        </div>
-    </nav>
+    <!-- ...existing code... -->
 
     <!-- Page Content -->
     <div class="page-content">
@@ -116,12 +112,22 @@
                 <div class="col-12 col-md-5 col-lg-4 mb-4">
                     <div class="profile-card card text-center">
                         <div class="profile-img-container mb-3">
-                            <img id="currentProfileImg" src="{{ Avatar::create(session('user')['name'])->toBase64() }}"
+                            <img id="currentProfileImg"
+                                src="{{ !empty($user['avatar']) ? $user['avatar'] : Avatar::create($user['name'] ?? 'User')->toBase64() }}"
                                 class="profile-img" alt="Profile Picture">
-                            <label for="uploadFotoProfil" class="edit-icon" data-bs-toggle="modal"
-                                data-bs-target="#editProfileModal">
+                            <label class="edit-icon" data-bs-toggle="modal" data-bs-target="#editProfileModal">
                                 <i class="bi bi-pencil-fill text-primary fs-6"></i>
                             </label>
+                            {{-- Tombol hapus avatar --}}
+                            @if(!empty($user['avatar']))
+                            <form id="deleteAvatarForm" method="POST" action="{{ route('profile.delete-avatar') }}" style="position:absolute;top:0;left:0;">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-danger rounded-circle" style="position:absolute;top:0;left:0;" title="Hapus Foto" onclick="return confirm('Hapus foto profil?')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                            @endif
                         </div>
                         <h5 class="text-muted mb-1">{{ $user['phone'] ?? '' }}</h5>
                         <p class="text-muted small mb-4">{{ $user['email'] ?? '' }}</p>
@@ -146,28 +152,29 @@
         </div>
     </div>
 
-    <!-- Modal -->
+    <!-- Modal Update Avatar -->
     <div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content rounded-4 border-0 shadow">
-                <form id="modalFotoForm" method="POST" enctype="multipart/form-data">
+                <form id="modalFotoForm" method="POST" action="{{ route('profile.update-avatar') }}">
                     @csrf
+                    @method('PUT')
+                    <input type="hidden" name="avatar" id="fotoBase64">
                     <div class="modal-header border-0">
                         <h5 class="modal-title fw-semibold text-primary">Ganti Foto Profil</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                     </div>
                     <div class="modal-body text-center">
                         <div class="mb-3">
-                            <img id="previewFoto" src="" class="rounded-circle shadow-sm border"
+                            <img id="previewFoto"
+                                src="{{ !empty($user['avatar']) ? $user['avatar'] : Avatar::create($user['name'] ?? 'User')->toBase64() }}"
+                                class="rounded-circle shadow-sm border"
                                 style="width: 130px; height: 130px; object-fit: cover;">
                         </div>
                         <p class="small text-muted">Pastikan foto berformat JPG, PNG atau JPEG.</p>
-                        <input type="file" class="form-control d-none" id="uploadFotoProfilModal" name="foto"
-                            accept="image/*">
-                        <button type="button" class="btn btn-outline-primary" id="changeImageBtn">Pilih Gambar
-                            Baru</button>
-                        <input type="hidden" name="foto_base64" id="fotoBase64">
+                        <input type="file" class="form-control d-none" id="uploadFotoProfilModal" accept="image/*">
+                        <button type="button" class="btn btn-outline-primary" id="changeImageBtn">Pilih Gambar Baru</button>
                     </div>
                     <div class="modal-footer border-0 d-flex justify-content-between">
                         <button type="button" class="btn btn-light btn-flat" data-bs-dismiss="modal">Batal</button>
@@ -205,8 +212,5 @@
             }
         });
     </script>
-
-
 </body>
-
 </html>

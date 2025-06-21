@@ -24,9 +24,9 @@ Route::middleware('auth.token')->group(function () {
 });
 
 
-
 Route::middleware('auth.session')->group(function () {
     Route::post('/logout', [AuthController::class, 'handleLogout'])->name('auth.logout');
+    Route::get('/dashboard-rekaptulasi', [DashboardController::class, 'rekapitulasi'])->name('dashboard.rekapitulasi');
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/scan-result', function () {
@@ -65,8 +65,6 @@ Route::get('/laporan-transaksi/export-excel', [LaporanController::class, 'export
 // Export Excel per jenis transaksi
 Route::get('/laporan-transaksi/export-excel/{id}', [LaporanController::class, 'exportLaporanTransaksiExcelByType'])->name('transactions.exportExcelByType');
 
-
-
     Route::get('/barang/refresh-qrcodes', [BarangController::class, 'refreshQRCodes'])->name('barang.refresh-qrcodes');
     Route::get('/search-barang', [TransactionController::class, 'searchBarang'])->name('search.barang');
 
@@ -92,6 +90,10 @@ Route::get('/laporan-transaksi/export-excel/{id}', [LaporanController::class, 'e
 
 
     Route::get('notifikasi',[NotifikasiController::class, 'getUnreadNotifications'])->name('getnotifikasi');
+
+    Route::put('/user/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.update-avatar');
+    Route::delete('/user/avatar', [ProfileController::class, 'deleteAvatar'])->name('profile.delete-avatar');
+
 });
 
 
