@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Repositories\UserRepository;
+use Illuminate\Support\Facades\Http;
 
 class UserService
 {
@@ -42,4 +43,9 @@ class UserService
     {
         return $this->userRepository->delete($id);
     }
+    public function changePassword(array $data, $token)
+{
+    return Http::withToken($token)
+        ->post(config('api.base_url') . '/users/change-password', $data);
+}
 }

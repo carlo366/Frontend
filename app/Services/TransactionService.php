@@ -129,5 +129,27 @@ class TransactionService
             'message' => 'Barang tidak ditemukan.',
         ];
     }
+ public function update($kode, array $data, $token)
+{
+    try {
+        $response = $this->transactionRepository->update($kode, $data, $token);
+
+        if (!$response['success']) {
+            throw new \Exception($response['message']);
+        }
+
+        return [
+            'success' => true,
+            'message' => $response['message'] ?? 'Transaksi berhasil diperbarui',
+            'data' => $response['data'] ?? null,
+        ];
+    } catch (\Exception $e) {
+        return [
+            'success' => false,
+            'message' => $e->getMessage(),
+        ];
+
+    }
+}
 
 }

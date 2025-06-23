@@ -4,15 +4,18 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Services\AuthService;
+use App\Services\UserService;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class ProfileController extends Controller
 {
     protected $auth_service;
+    protected $userService;
 
-    public function __construct(AuthService $auth_service)
+    public function __construct(AuthService $auth_service, UserService $userService,)
     {
+        $this->userService = $userService;
         $this->auth_service = $auth_service;
     }
 
@@ -23,7 +26,7 @@ class ProfileController extends Controller
         if (!$token) return null;
 
         $user = $this->auth_service->getUserInfo();
-        dd($user);
+        // dd($user);
         return view('frontend.profile.user_profile', compact('user'));
     }
 
@@ -37,6 +40,48 @@ class ProfileController extends Controller
 
         return view('frontend.profile.ganti_password', compact('user'));
     }
+public function changeePassword(Request $request)
+{
+    try {
+        if (!session('token')) {
+            return redirect()->route('login')->withErrors('Anda perlu login terlebih dahulu.');
+        }
+
+        $response = $this->userService->changePassword([
+            'current_password' => $request->input('current_password'),
+            'new_password' => $request->input('new_password'),
+            'new_password_confirmation' => $request->input('new_password_confirmation'),
+        ], session('token'));
+
+        if ($response->successful()) {
+            return back()->with('success', 'Password berhasil diubah.');
+        }
+
+        $responseBody = $response->json();
+
+        // Flatten pesan error validasi agar aman dipakai di blade
+        $flattenedErrors = [];
+        if (isset($responseBody['errors']) && is_array($responseBody['errors'])) {
+            foreach ($responseBody['errors'] as $field => $messages) {
+                if (is_array($messages)) {
+                    foreach ($messages as $msg) {
+                        $flattenedErrors[] = $msg;
+                    }
+                } else {
+                    $flattenedErrors[] = $messages;
+                }
+            }
+        }
+
+        if (isset($responseBody['message'])) {
+            $flattenedErrors[] = $responseBody['message'];
+        }
+
+        return back()->withErrors($flattenedErrors);
+    } catch (\Exception $e) {
+        return back()->withErrors(['Terjadi kesalahan: ' . $e->getMessage()]);
+    }
+}
 
     public function updateEmail(Request $request)
     {

@@ -131,4 +131,21 @@ class TransactionController extends Controller
         // Kembalikan hasil pencarian dalam format JSON
         return response()->json($filteredBarang);
     }
+  public function update(Request $request, $kode)
+{
+    $token = session('token');
+    if (!$token) {
+        return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
+    }
+
+    $response = $this->transactionService->update($kode, $request->all(), $token);
+
+    if ($response['success']) {
+        // Redirect back dengan pesan sukses
+        return redirect()->back()->with('success', $response['message']);
+    } else {
+        // Redirect back dengan pesan error
+        return redirect()->back()->with('error', $response['message']);
+    }
+}
 }

@@ -1,4 +1,3 @@
-{{-- filepath: resources/views/frontend/profile/layout/template.blade.php --}}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -7,9 +6,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>User Profile</title>
-
-    <!-- Bootstrap & Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+ <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <link href="{{ asset('template/assets/icons/phosphor/styles.min.css') }}" rel="stylesheet" type="text/css">
@@ -96,9 +93,13 @@
             }
         }
     </style>
+    {{-- @endpush --}}
+
 </head>
 
 <body>
+        @include('layouts.navbar')
+
     @include('components.demo_config')
 
     <!-- Navbar -->
@@ -106,51 +107,58 @@
 
     <!-- Page Content -->
     <div class="page-content">
-        <div class="container">
-            <div class="row justify-content-center">
-                <!-- Profile -->
-                <div class="col-12 col-md-5 col-lg-4 mb-4">
-                    <div class="profile-card card text-center">
-                        <div class="profile-img-container mb-3">
-                            <img id="currentProfileImg"
-                                src="{{ !empty($user['avatar']) ? $user['avatar'] : Avatar::create($user['name'] ?? 'User')->toBase64() }}"
-                                class="profile-img" alt="Profile Picture">
-                            <label class="edit-icon" data-bs-toggle="modal" data-bs-target="#editProfileModal">
-                                <i class="bi bi-pencil-fill text-primary fs-6"></i>
-                            </label>
-                            {{-- Tombol hapus avatar --}}
-                            @if(!empty($user['avatar']))
-                            <form id="deleteAvatarForm" method="POST" action="{{ route('profile.delete-avatar') }}" style="position:absolute;top:0;left:0;">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-danger rounded-circle" style="position:absolute;top:0;left:0;" title="Hapus Foto" onclick="return confirm('Hapus foto profil?')">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </form>
-                            @endif
-                        </div>
-                        <h5 class="text-muted mb-1">{{ $user['phone'] ?? '' }}</h5>
-                        <p class="text-muted small mb-4">{{ $user['email'] ?? '' }}</p>
-                        <div class="btn-section">
-                            <a href="{{ route('profile.user_profile') }}"
-                                class="btn btn-outline-primary w-100 btn-flat">
-                                <i class="bi bi-person me-2"></i>Profil Pengguna
-                            </a>
-                            <a href="{{ route('profile.ganti-password') }}"
-                                class="btn btn-outline-secondary w-100 btn-flat">
-                                <i class="bi bi-key me-2"></i>Ganti Password
-                            </a>
-                        </div>
+    <div class="container">
+        <!-- Tombol Back -->
+        <div class="mb-3">
+            <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Kembali
+            </a>
+        </div>
+
+        <div class="row justify-content-center">
+            <!-- Profile -->
+            <div class="col-12 col-md-5 col-lg-4 mb-4">
+                <div class="profile-card card text-center">
+                    <div class="profile-img-container mb-3">
+                        <img id="currentProfileImg"
+                            src="{{ !empty($user['avatar']) ? $user['avatar'] : Avatar::create($user['name'] ?? 'User')->toBase64() }}"
+                            class="profile-img" alt="Profile Picture">
+                        <label class="edit-icon" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                            <i class="bi bi-pencil-fill text-primary fs-6"></i>
+                        </label>
+                        {{-- Tombol hapus avatar --}}
+                        @if(!empty($user['avatar']))
+                        <form id="deleteAvatarForm" method="POST" action="{{ route('profile.delete-avatar') }}" style="position:absolute;top:0;left:0;">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-sm btn-danger rounded-circle" style="position:absolute;top:0;left:0;" title="Hapus Foto" onclick="return confirm('Hapus foto profil?')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                        @endif
+                    </div>
+                    <h5 class="text-muted mb-1">{{ $user['phone'] ?? '' }}</h5>
+                    <p class="text-muted small mb-4">{{ $user['email'] ?? '' }}</p>
+                    <div class="btn-section">
+                        <a href="{{ route('profile.user_profile') }}"
+                            class="btn btn-outline-primary w-100 btn-flat">
+                            <i class="bi bi-person me-2"></i>Profil Pengguna
+                        </a>
+                        <a href="{{ route('profile.changePassword') }}"
+                            class="btn btn-outline-secondary w-100 btn-flat">
+                            <i class="bi bi-key me-2"></i>Ganti Password
+                        </a>
                     </div>
                 </div>
+            </div>
 
-                <!-- Dynamic Content -->
-                <div class="col-12 col-md-7 col-lg-8">
-                    @yield('contentprofile')
-                </div>
+            <!-- Dynamic Content -->
+            <div class="col-12 col-md-7 col-lg-8">
+                @yield('contentprofile')
             </div>
         </div>
     </div>
+</div>
 
     <!-- Modal Update Avatar -->
     <div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel"
@@ -212,5 +220,27 @@
             }
         });
     </script>
+                @include('layouts.footer')
+
+{{-- Script untuk toggle show/hide password --}}
+<script>
+    document.querySelectorAll('.toggle-password').forEach(function(button) {
+        button.addEventListener('click', function() {
+            const targetId = this.getAttribute('data-target');
+            const input = document.getElementById(targetId);
+            const icon = this.querySelector('i');
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            } else {
+                input.type = "password";
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            }
+        });
+    });
+</script>
 </body>
+
 </html>

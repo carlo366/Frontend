@@ -39,7 +39,8 @@ Route::middleware('auth.session')->group(function () {
     })->middleware('refresh.permissions');
 
     Route::get('/user_profile', [ProfileController::class, 'index'])->name('profile.user_profile');
-    Route::get('/user_profile/change-password', [ProfileController::class, 'changePassword'])->name('profile.ganti-password');
+    Route::get('/user_profile/change-password', [ProfileController::class, 'changePassword'])->name('profile.changePassword');
+    Route::post('/users/change-password', [ProfileController::class, 'changeePassword'])->name('users.changeePassword');
     Route::put('profile/update-email', [ProfileController::class, 'updateEmail'])->name('profile.update-email');
     Route::put('/profile/update-user', [ProfileController::class, 'updateUser'])->name('profile.update-user');
 
@@ -67,6 +68,7 @@ Route::get('/laporan-transaksi/export-excel/{id}', [LaporanController::class, 'e
 
     Route::get('/barang/refresh-qrcodes', [BarangController::class, 'refreshQRCodes'])->name('barang.refresh-qrcodes');
     Route::get('/search-barang', [TransactionController::class, 'searchBarang'])->name('search.barang');
+    Route::put('/transaksi/{kode}', [TransactionController::class, 'update'])->name('transaksi.update');
 
     Route::resource('satuans', SatuanController::class)->middleware('check.permission:view_satuan');
     Route::resource('gudangs', GudangController::class)->middleware('check.permission:view_gudang');
@@ -78,10 +80,12 @@ Route::get('/laporan-transaksi/export-excel/{id}', [LaporanController::class, 'e
     Route::put('profile/update-email', [ProfileController::class, 'updateEmail'])->name('profile.update-email');
 
     Route::resource('transactions', TransactionController::class);
-    Route::resource('webs', WebController::class);
+Route::put('/transaksi/{kode}', [TransactionController::class, 'update'])->name('transaksi.update');
+  Route::resource('webs', WebController::class);
 
     Route::post('/kode-barang/check', [TransactionController::class, 'check'])->name('kode_barang.check');
     Route::get('/kode-barang/reset', [TransactionController::class, 'reset'])->name('kode_barang.reset');
+    Route::post('/update-barang/{id}', [TransactionController::class, 'updateBarang'])->name('transaksi.update-barang');
     Route::post('/kode-barang/remove', [TransactionController::class, 'remove'])->name('kode_barang.remove');
 
     Route::get('/select-role', [PermissionController::class, 'selectRole'])->name('permissions.index');

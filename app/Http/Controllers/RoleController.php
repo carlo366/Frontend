@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Services\RoleService;
+use Illuminate\Support\Facades\Log;
 
 class RoleController extends Controller
 {
@@ -61,6 +62,9 @@ class RoleController extends Controller
 
             if ($response->successful()) {
                 $role = $response->json('data');
+                // Debug: Inspect the structure of $role
+                Log::info('Role data:', [$role]);
+                // or use: dd($role);
                 return view('frontend.role.edit', compact('role'));
             }
 
@@ -109,21 +113,28 @@ class RoleController extends Controller
     }
 
     public function show($id)
-    {
-        try {
-            if (!session('token')) {
-                return response()->json(['message' => 'Unauthenticated'], 401);
-            }
-
-            $response = $this->roleService->getRole($id);
-
-            if ($response->successful()) {
-                return response()->json($response->json());
-            }
-
-            return response()->json(['message' => 'Data tidak ditemukan'], $response->status());
-        } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 500);
+{
+    try {
+        if (!session('token')) {
+            return redirect()->route('login')->withErrors('Anda perlu login terlebih dahulu.');
         }
+
+        $roleResponse = $this->roleService->getRole($id);
+
+        if ($roleResponse->successful()) {
+            $data = $roleResponse->json('data');
+            $role = is_array($data) && isset($data['name']) ? $data['name'] : $data;
+            $permissions = is_array($data) && isset($data['permissions']) ? $data['permissions'] : [];
+
+            Log::info('Role data:', [$role]);
+            Log::info('Permissions data:', [$permissions]);
+
+            return view('frontend.permissions.show', compact('role', 'permissions'));
+        }
+
+        return redirect()->route('roles.index')->withErrors('Data tidak ditemukan.');
+    } catch (\Exception $e) {
+        return back()->withErrors(['message' => $e->getMessage()]);
     }
+}
 }
